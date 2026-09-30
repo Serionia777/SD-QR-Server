@@ -1,20 +1,40 @@
 import com.sun.net.httpserver.HttpServer;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class Server {
+
     static void send(com.sun.net.httpserver.HttpExchange e, int code, String body, String type) throws Exception {
         byte[] data = body.getBytes(StandardCharsets.UTF_8);
         e.getResponseHeaders().set("Content-Type", type + "; charset=utf-8");
+        e.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
         e.sendResponseHeaders(code, data.length);
         e.getResponseBody().write(data);
         e.close();
     }
 
+    static String dec(String s) {
+        try {
+            return URLDecoder.decode(s, StandardCharsets.UTF_8);
+        } catch (Exception ex) {
+            return s;
+        }
+    }
+
+    static String esc(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;");
+    }
+
     public static void main(String[] args) throws Exception {
-        HttpServer server = HttpServer.create(new InetSocketAddress("0.0.0.0", 8080), 0);
+        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+        HttpServer server = HttpServer.create(new InetSocketAddress("0.0.0.0", port), 0);
 
         server.createContext("/health", e -> {
             try {
@@ -24,29 +44,137 @@ public class Server {
             }
         });
 
-        server.createContext("/q/", e -> {
+        server.createContext("/machines", e -> {
             try {
-                String id = e.getRequestURI().getPath().substring(3);
-                String machineData = Files.readString(Path.of("machines.txt"), StandardCharsets.UTF_8);
+                if ("POST".equalsIgnoreCase(e.getRequestMethod())) {
+                    String body = new String(
+                        e.getRequestBody().readAllBytes(),
+                        StandardCharsets.UTF_8
+                    );
 
-                String html =
-                    "<!doctype html><html><head>" +
-                    "<meta charset='utf-8'>" +
-                    "<meta name='viewport' content='width=device-width,initial-scale=1'>" +
-                    "<title>SD-QR</title></head><body>" +
-                    "<h1>QR Станки</h1>" +
-                    "<h2>Станок: " + id + "</h2>" +
-                    "<p>" + machineData.replace("\n", "<br>") + "</p>" +
-                    "</body></html>";
+                    Files.writeString(
+                        Path.of("machines.txt"),
+                        body,
+                        StandardCharsets.UTF_8
+                    );
 
-                send(e, 200, html, "text/html");
+                    send(e, 200, "{\"ok\":true}", "application/json");
+                } else {
+                    send(e, 405, "{\"error\":\"POST only\"}", "application/json");
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
+                try {
+                    send(e, 500, "{\"error\":\"server error\"}", "application/json");
+                } catch (Exception ignored) {}
+            }
+        });
+
+        server.createContext("/q/", e -> {
+            try {
+                String id = dec(e.getRequestURI().getPath().substring(3));
+
+                Path file = Path.of("machines.txt");
+
+                if (!Files.exists(file)) {
+                    send(e, 404,
+                        "<!doctype html><html><head><meta charset='utf-8'>" +
+                        "<meta name='viewport' content='width=device-width,initial-scale=1'>" +
+                        "<title>SD-QR</title></head><body>" +
+                        "<h1>QR Станки</h1><p>Данные станка пока не загружены.</p>" +
+                        "</body></html>",
+                        "text/html");
+                    return;
+                }
+
+                String[] lines = Files.readString(file, StandardCharsets.UTF_8).split("\\R");
+                String[] found = null;
+
+                for (String line : lines) {
+                    String[] p = line.split("\\|", -1);
+                    if (p.length >= 3 && dec(p[0]).equals(id)) {
+                        found = p;
+                        break;
+                    }
+                }
+
+                if (found == null) {
+                    send(e, 404,
+                        "<!doctype html><html><head><meta charset='utf-8'>" +
+                        "<meta name='viewport' content='width=device-width,initial-scale=1'>" +
+                        "<title>SD-QR</title></head><body>" +
+                        "<h1>QR Станки</h1><p>Станок не найден: " + esc(id) + "</p>" +
+                        "</body></html>",
+                        "text/html");
+                    return;
+                }
+
+                String name = found.length > 1 ? dec(found[1]) : "";
+                String status = found.length > 2 ? dec(found[2]) : "";
+                String contentType = found.length > 3 ? dec(found[3]) : "";
+                String title = found.length > 4 ? dec(found[4]) : "";
+                String note = found.length > 5 ? dec(found[5]) : "";
+                String resource = found.length > 6 ? dec(found[6]) : "";
+                String extra = found.length > 7 ? dec(found[7]) : "";
+
+                StringBuilder html = new StringBuilder();
+                html.append("<!doctype html><html><head>");
+                html.append("<meta charset='utf-8'>");
+                html.append("<meta name='viewport' content='width=device-width,initial-scale=1'>");
+                html.append("<title>SD-QR</title>");
+                html.append("<style>");
+                html.append("body{font-family:Arial,sans-serif;max-width:760px;margin:0 auto;padding:24px;background:#f5f5f5;color:#111}");
+                html.append(".card{background:white;padding:22px;border-radius:16px;box-shadow:0 2px 12px #0002}");
+                html.append(".status{font-weight:bold}");
+                html.append("a{word-break:break-all}");
+                html.append("</style></head><body><div class='card'>");
+
+                html.append("<h1>QR Станки</h1>");
+                html.append("<h2>").append(esc(name)).append("</h2>");
+                html.append("<p><b>ID:</b> ").append(esc(id)).append("</p>");
+                html.append("<p><b>Статус:</b> <span class='status'>").append(esc(status)).append("</span></p>");
+
+                if (!contentType.isBlank())
+                    html.append("<p><b>Тип:</b> ").append(esc(contentType)).append("</p>");
+
+                if (!title.isBlank())
+                    html.append("<h3>").append(esc(title)).append("</h3>");
+
+                if (!note.isBlank())
+                    html.append("<p>").append(esc(note).replace("\n", "<br>")).append("</p>");
+
+                if (!resource.isBlank()) {
+                    String safeResource = esc(resource);
+                    if (resource.startsWith("http://") || resource.startsWith("https://")) {
+                        html.append("<p><b>Ссылка:</b> <a href='")
+                            .append(safeResource)
+                            .append("'>")
+                            .append(safeResource)
+                            .append("</a></p>");
+                    } else {
+                        html.append("<p><b>Ресурс:</b> ").append(safeResource).append("</p>");
+                    }
+                }
+
+                if (!extra.isBlank())
+                    html.append("<p><b>Дополнительно:</b> ")
+                        .append(esc(extra).replace("\n", "<br>"))
+                        .append("</p>");
+
+                html.append("</div></body></html>");
+
+                send(e, 200, html.toString(), "text/html");
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                try {
+                    send(e, 500, "Ошибка сервера", "text/plain");
+                } catch (Exception ignored) {}
             }
         });
 
         server.start();
         System.out.println("SD-QR Java Server");
-        System.out.println("Listening on port 8080");
+        System.out.println("Listening on port " + port);
     }
 }
