@@ -70,6 +70,16 @@ public class Server {
             }
         });
 
+        server.createContext("/debug", e -> {
+            try {
+                Path f = Path.of("machines.txt");
+                String body = Files.exists(f) ? Files.readString(f, StandardCharsets.UTF_8) : "NO machines.txt";
+                send(e, 200, body, "text/plain");
+            } catch (Exception ex) {
+                try { send(e, 500, ex.toString(), "text/plain"); } catch (Exception ignored) {}
+            }
+        });
+
         server.createContext("/q/", e -> {
             try {
                 String id = dec(e.getRequestURI().getPath().substring(3));
