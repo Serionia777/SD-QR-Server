@@ -7,6 +7,8 @@ import java.nio.file.Path;
 
 public class Server {
 
+    static final java.util.concurrent.ConcurrentHashMap<String, Integer> OPEN_COUNTS = new java.util.concurrent.ConcurrentHashMap<>();
+    static final java.util.concurrent.ConcurrentHashMap<String, Long> FIRST_OPEN = new java.util.concurrent.ConcurrentHashMap<>();
     static void send(com.sun.net.httpserver.HttpExchange e, int code, String body, String type) throws Exception {
         byte[] data = body.getBytes(StandardCharsets.UTF_8);
         e.getResponseHeaders().set("Content-Type", type + "; charset=utf-8");
@@ -126,9 +128,20 @@ public class Server {
                 String note = found.length > 5 ? dec(found[5]) : "";
                 String resource = found.length > 6 ? dec(found[6]) : "";
                 String extra = found.length > 7 ? dec(found[7]) : "";
+        int used = 0, limit = 0, durationMinutes = 0;
+        try { if (found.length > 8 && !found[8].isBlank()) used = Integer.parseInt(found[8]); } catch(Exception ignored) {}
+        try { if (found.length > 9 && !found[9].isBlank()) limit = Integer.parseInt(found[9]); } catch(Exception ignored) {}
+        try { if (found.length > 10 && !found[10].isBlank()) durationMinutes = Integer.parseInt(found[10]); } catch(Exception ignored) {}
 
                 StringBuilder html = new StringBuilder();
                 html.append("<!doctype html><html><head>");
+            if (!"Работает".equalsIgnoreCase(status)) { send(e, 403, "QR-код не активен. Доступ отключён.", "text/plain"); return; }
+            int opens = OPEN_COUNTS.getOrDefault(id, 0);
+            long now = System.currentTimeMillis();
+            long firstOpen = FIRST_OPEN.computeIfAbsent(id, k -> now);
+            if (durationMinutes > 0 && now - firstOpen >= durationMinutes * 60000L) { send(e, 403, "Время доступа к QR-коду истекло.", "text/plain"); return; }
+            if (limit > 0 && opens >= limit) { send(e, 403, "Лимит открытий QR-кода исчерпан.", "text/plain"); return; }
+            OPEN_COUNTS.put(id, opens + 1);
                 html.append("<meta charset='utf-8'>");
                 html.append("<meta name='viewport' content='width=device-width,initial-scale=1'>");
                 html.append("<title>SD-QR</title>");
