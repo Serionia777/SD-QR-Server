@@ -147,7 +147,7 @@ public class Server {
                 html.append("<title>SD-QR</title>");
                 html.append("<style>");
                 html.append("body{font-family:Arial,sans-serif;max-width:760px;margin:0 auto;padding:24px;background:#0b0f14;color:#f5f7fa}");
-                html.append(".card{background:white;padding:22px;border-radius:16px;box-shadow:0 2px 12px #0002}");
+                html.append(".card{color:#111;background:white;padding:22px;border-radius:16px;box-shadow:0 2px 12px #0002}");
                 html.append(".status{font-weight:bold}");
                 html.append("a{word-break:break-all}");
                 html.append("</style></head><body><div class='card'>");
