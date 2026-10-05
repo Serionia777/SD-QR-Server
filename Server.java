@@ -153,7 +153,6 @@ public class Server {
                 html.append("</style></head><body><div class='card'>");
 
                 html.append("<h1>SD-QR</h1>");
-                html.append("<h2>").append(esc(name)).append("</h2>");
                 html.append("<p><b>ID:</b> ").append(esc(id)).append("</p>");
                 html.append("<p><b>Статус:</b> <span class='status'>").append(esc(status)).append("</span></p>");
 
