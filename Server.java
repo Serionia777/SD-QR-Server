@@ -93,7 +93,7 @@ public class Server {
                         "<!doctype html><html><head><meta charset='utf-8'>" +
                         "<meta name='viewport' content='width=device-width,initial-scale=1'>" +
                         "<title>SD-QR</title></head><body>" +
-                        "<h1>QR Станки</h1><p>Данные станка пока не загружены.</p>" +
+                        "<h1>SD-QR</h1><p>Данные станка пока не загружены.</p>" +
                         "</body></html>",
                         "text/html");
                     return;
@@ -115,7 +115,7 @@ public class Server {
                         "<!doctype html><html><head><meta charset='utf-8'>" +
                         "<meta name='viewport' content='width=device-width,initial-scale=1'>" +
                         "<title>SD-QR</title></head><body>" +
-                        "<h1>QR Станки</h1><p>Станок не найден: " + esc(id) + "</p>" +
+                        "<h1>SD-QR</h1><p>QR-код не найден: " + esc(id) + "</p>" +
                         "</body></html>",
                         "text/html");
                     return;
@@ -146,13 +146,13 @@ public class Server {
                 html.append("<meta name='viewport' content='width=device-width,initial-scale=1'>");
                 html.append("<title>SD-QR</title>");
                 html.append("<style>");
-                html.append("body{font-family:Arial,sans-serif;max-width:760px;margin:0 auto;padding:24px;background:#f5f5f5;color:#111}");
+                html.append("body{font-family:Arial,sans-serif;max-width:760px;margin:0 auto;padding:24px;background:#0b0f14;color:#f5f7fa}");
                 html.append(".card{background:white;padding:22px;border-radius:16px;box-shadow:0 2px 12px #0002}");
                 html.append(".status{font-weight:bold}");
                 html.append("a{word-break:break-all}");
                 html.append("</style></head><body><div class='card'>");
 
-                html.append("<h1>QR Станки</h1>");
+                html.append("<h1>SD-QR</h1>");
                 html.append("<h2>").append(esc(name)).append("</h2>");
                 html.append("<p><b>ID:</b> ").append(esc(id)).append("</p>");
                 html.append("<p><b>Статус:</b> <span class='status'>").append(esc(status)).append("</span></p>");
