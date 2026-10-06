@@ -2,3 +2,5 @@
 *.backup
 
 Server.java.before-debug
+
+access.txt
