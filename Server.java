@@ -85,6 +85,7 @@ public class Server {
         server.createContext("/q/", e -> {
             try {
                 String id = dec(e.getRequestURI().getPath().substring(3));
+            if (id.matches("QR-[0-9]+")) { try { id = String.format("QR-%06d", Integer.parseInt(id.substring(3))); } catch (Exception ignored) {} }
 
                 Path file = Path.of("machines.txt");
 
