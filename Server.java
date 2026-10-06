@@ -126,6 +126,7 @@ public class Server {
                 String contentType = found.length > 3 ? dec(found[3]) : "";
                 String title = found.length > 4 ? dec(found[4]) : "";
                 String note = found.length > 5 ? dec(found[5]) : "";
+        String pageBg = found.length > 11 ? dec(found[11]) : "#0b0f14"; String cardBg = found.length > 12 ? dec(found[12]) : "#ffffff"; String textColor = found.length > 13 ? dec(found[13]) : "#111111";
                 String resource = found.length > 6 ? dec(found[6]) : "";
                 String extra = found.length > 7 ? dec(found[7]) : "";
         int used = 0, limit = 0, durationMinutes = 0;
@@ -146,8 +147,8 @@ public class Server {
                 html.append("<meta name='viewport' content='width=device-width,initial-scale=1'>");
                 html.append("<title>SD-QR</title>");
                 html.append("<style>");
-                html.append("body{font-family:Arial,sans-serif;max-width:760px;margin:0 auto;padding:24px;background:#0b0f14;color:#f5f7fa}");
-                html.append(".card{color:#111;background:white;padding:22px;border-radius:16px;box-shadow:0 2px 12px #0002}");
+        html.append("body{font-family:Arial,sans-serif;max-width:760px;margin:0 auto;padding:24px;background:").append(esc(pageBg)).append(";color:#f5f7fa}");
+        html.append(".card{color:").append(esc(textColor)).append(";background:").append(esc(cardBg)).append(";padding:22px;border-radius:16px;box-shadow:0 2px 12px #0002}");
                 html.append(".status{font-weight:bold}");
                 html.append("a{word-break:break-all}");
                 html.append("</style></head><body><div class='card'>");
