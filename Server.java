@@ -90,6 +90,7 @@ public class Server {
             "<div class='row'><label>Цвет карточки</label><input type='color' id='card' value='#ffffff'><input type='text' id='cardHex' value='#ffffff'></div>" +
             "<div class='row'><label>Цвет текста</label><input type='color' id='text' value='#111111'><input type='text' id='textHex' value='#111111'></div>" +
             "<h3>Предпросмотр</h3><div class='preview' id='preview'><div class='pcard' id='pcard'><h2>SD-QR</h2><p><b>ID:</b> QR-000001</p><p><b>Статус:</b> Работает</p></div></div>" +
+                    "<button id='saveBtn'>Сохранить</button>" +
             "<script>function B(p,h,f){p=document.getElementById(p);h=document.getElementById(h);p.oninput=function(){h.value=p.value;f(p.value)};h.onchange=function(){if(/^#[0-9a-fA-F]{6}$/.test(h.value)){p.value=h.value;f(h.value)}}}B('page','pageHex',function(v){document.getElementById('preview').style.background=v});B('card','cardHex',function(v){document.getElementById('pcard').style.background=v});B('text','textHex',function(v){document.getElementById('pcard').style.color=v});</script></div></body></html>";
             try { send(e, 200, html, "text/html"); } catch (Exception ex) { ex.printStackTrace(); }
         });
