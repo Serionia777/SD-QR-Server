@@ -82,6 +82,18 @@ public class Server {
             }
         });
 
+        server.createContext("/settings/colors", e -> {
+            String html = "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>" +
+            "<title>SD-QR Colors</title><style>body{font-family:Arial,sans-serif;background:#f2f2f2;padding:20px;color:#111}.panel{max-width:600px;margin:auto;background:#fff;padding:22px;border-radius:18px}.row{margin:22px 0}label{display:block;font-weight:bold;margin-bottom:8px}input[type=color]{width:100%;height:65px;border:0}input[type=text]{width:100%;box-sizing:border-box;padding:12px;font-size:18px;margin-top:6px}.preview{padding:25px;background:#ffd600;border-radius:16px}.pcard{padding:25px;background:#ffffff;color:#111111;border-radius:16px}</style></head><body>" +
+            "<div class='panel'><h1>SD-QR</h1><h2>Настройка цветов</h2>" +
+            "<div class='row'><label>Фон страницы</label><input type='color' id='page' value='#ffd600'><input type='text' id='pageHex' value='#ffd600'></div>" +
+            "<div class='row'><label>Цвет карточки</label><input type='color' id='card' value='#ffffff'><input type='text' id='cardHex' value='#ffffff'></div>" +
+            "<div class='row'><label>Цвет текста</label><input type='color' id='text' value='#111111'><input type='text' id='textHex' value='#111111'></div>" +
+            "<h3>Предпросмотр</h3><div class='preview' id='preview'><div class='pcard' id='pcard'><h2>SD-QR</h2><p><b>ID:</b> QR-000001</p><p><b>Статус:</b> Работает</p></div></div>" +
+            "<script>function B(p,h,f){p=document.getElementById(p);h=document.getElementById(h);p.oninput=function(){h.value=p.value;f(p.value)};h.onchange=function(){if(/^#[0-9a-fA-F]{6}$/.test(h.value)){p.value=h.value;f(h.value)}}}B('page','pageHex',function(v){document.getElementById('preview').style.background=v});B('card','cardHex',function(v){document.getElementById('pcard').style.background=v});B('text','textHex',function(v){document.getElementById('pcard').style.color=v});</script></div></body></html>";
+            try { send(e, 200, html, "text/html"); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+
         server.createContext("/q/", e -> {
             try {
                 String id = dec(e.getRequestURI().getPath().substring(3));
